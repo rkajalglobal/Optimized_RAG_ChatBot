@@ -37,10 +37,12 @@ PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIM = 1536  # must match the embedding model above
+PINECONE_API_KEY="pcsk_6iDZvQ_QA2yQZp7E1WDNVqiqA5BZCpk8MJCUPXFbUHjKdoxkZJFeH6Hc1FbdgQNB5Ci4yo"
+OPENAI_API_KEY="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"
 
 
 def demo_chatbot():
-    api_key = os.getenv("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")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise ValueError(
             "OPENAI_API_KEY not found. Create a .env file with: "
@@ -58,7 +60,7 @@ def get_embeddings():
 
 def get_pinecone_index():
     """Connect to the Pinecone index, creating it on first run."""
-    api_key = os.getenv("pcsk_6iDZvQ_QA2yQZp7E1WDNVqiqA5BZCpk8MJCUPXFbUHjKdoxkZJFeH6Hc1FbdgQNB5Ci4yo")
+    api_key = os.getenv("PINECONE_API_KEY")
     if not api_key:
         raise ValueError(
             "PINECONE_API_KEY not found. Add it to your .env file: "
