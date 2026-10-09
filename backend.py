@@ -7,6 +7,8 @@ from langchain_core.documents import Document
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from operator import itemgetter
+from langchain_core.runnables import RunnableLambda
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.chat_history import InMemoryChatMessageHistory
@@ -138,6 +140,22 @@ def scrape_with_playwright(urls):
     return documents
 
 
+def trim_messages_boto(messages, max_messages=6):
+    """
+    Bypasses LangChain's token trimmer.
+    Slices the Python list down to the last N messages safely.
+    """
+    if len(messages) <= max_messages:
+        return messages
+    
+    trimmed = messages[-max_messages:]
+    
+
+    while trimmed and trimmed[0].type != "human":
+        trimmed.pop(0)
+        
+    return trimmed
+
 def index_website(urls=BETTERHELP_URLS, reset=True):
     """
     Scrape the URLs, chunk them, and upsert into Pinecone.
@@ -259,6 +277,7 @@ def demo_conversation(input_text, memory, retriever):
 
     rag_chain = (
         RunnablePassthrough.assign(
+            history=itemgetter("history") | RunnableLambda(lambda msgs: trim_messages_boto(msgs)),
             context=lambda x: format_docs(retriever.invoke(x["input"]))
         )
         | CHAT_PROMPT
