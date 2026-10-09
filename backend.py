@@ -31,10 +31,10 @@ BETTERHELP_URLS = [
 ]
 
 
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "betterhelp-rag")
+PINECONE_INDEX_NAME = "betterhelp-rag"
 PINECONE_NAMESPACE = "betterhelp-website"
-PINECONE_CLOUD = os.getenv("PINECONE_CLOUD", "aws")
-PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")
+PINECONE_CLOUD = "aws"
+PINECONE_REGION = "us-east-1"
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIM = 1536  # must match the embedding model above
@@ -43,7 +43,7 @@ OPENAI_API_KEY="sk-proj-hQlYgQ35PtRIy2OZcmyj7uhPucJYzQoPKniBwSWZl_e6DGtvn47OLEHm
 
 
 def demo_chatbot():
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = OPENAI_API_KEY
     if not api_key:
         raise ValueError(
             "OPENAI_API_KEY not found. Create a .env file with: "
@@ -61,7 +61,7 @@ def get_embeddings():
 
 def get_pinecone_index():
     """Connect to the Pinecone index, creating it on first run."""
-    api_key = os.getenv("PINECONE_API_KEY")
+    api_key = PINECONE_API_KEY
     if not api_key:
         raise ValueError(
             "PINECONE_API_KEY not found. Add it to your .env file: "
