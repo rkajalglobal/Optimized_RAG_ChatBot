@@ -2,6 +2,8 @@ import os
 import time
 import hashlib
 from dotenv import load_dotenv
+from playwright.sync_api import sync_playwright
+from langchain_core.documents import Document
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -24,8 +26,7 @@ BETTERHELP_URLS = [
     "https://www.betterhelp.com/advice/insurance/how-many-therapy-sessions-does-insurance-cover/",
     "https://www.betterhelp.com/advice/therapy/do-we-need-couples-therapy/",
     "https://www.betterhelp.com/advice/psychology/what-is-the-mind-body-connection/",
-    "https://www.betterhelp.com/reviews/",
-    "https://www.betterhelp.com/therapists/tx/"
+    "https://www.betterhelp.com/reviews/"
 
 ]
 
@@ -104,6 +105,39 @@ def make_chunk_ids(chunks):
     return ids
 
 
+def scrape_with_playwright(urls):
+    """
+    Uses Playwright headless browser to load pages, pass JS challenges,
+    and convert pages into LangChain Document objects.
+    """
+    documents = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        # Setup real browser environment headers
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+
+        for url in urls:
+            try:
+                print(f"Scraping safely via Playwright: {url}")
+                page.goto(url, wait_until="networkidle", timeout=30000)
+                time.sleep(3) # Short sleep to let dynamic JS elements resolve safely
+                
+                # Fetch text content inside the HTML body tag
+                body_text = page.locator("body").inner_text()
+                
+                # Turn it into a LangChain document object matching WebBaseLoader's format
+                doc = Document(page_content=body_text, metadata={"source": url})
+                documents.append(doc)
+            except Exception as e:
+                print(f"Failed to scrape {url}: {e}")
+                
+        browser.close()
+    return documents
+
+
 def index_website(urls=BETTERHELP_URLS, reset=True):
     """
     Scrape the URLs, chunk them, and upsert into Pinecone.
@@ -111,7 +145,12 @@ def index_website(urls=BETTERHELP_URLS, reset=True):
     pages don't leave stale chunks behind.
     Returns the number of chunks upserted.
     """
-    docs = WebBaseLoader(urls).load()
+    #docs = WebBaseLoader(urls).load()
+    docs = scrape_with_playwright(urls)
+
+    if not docs:
+        print("No documents were successfully extracted.")
+        return 0
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,

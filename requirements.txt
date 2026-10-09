@@ -9,3 +9,5 @@ langchain-community
 langchain-text-splitters
 beautifulsoup4
 streamlit
+playwright>=1.40.0
+pytest-playwright>=0.4.0
