@@ -40,8 +40,8 @@ PINECONE_REGION = "us-east-1"
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIM = 1536  # must match the embedding model above
-PINECONE_API_KEY="pcsk_6iDZvQ_QA2yQZp7E1WDNVqiqA5BZCpk8MJCUPXFbUHjKdoxkZJFeH6Hc1FbdgQNB5Ci4yo"
-OPENAI_API_KEY="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"
+PINECONE_API_KEY=""
+OPENAI_API_KEY=""
 
 
 def demo_chatbot():
